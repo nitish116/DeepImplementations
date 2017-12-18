@@ -67,6 +67,9 @@ class Solver(object):
             merged[:, i*h:(i+1)*h, (j*2)*h:(j*2+1)*h] = s
             merged[:, i*h:(i+1)*h, (j*2+1)*h:(j*2+2)*h] = t
         return merged.transpose(1, 2, 0)
+
+
+
     
     def to_var(self, x):
         """Converts numpy to variable."""
@@ -84,6 +87,51 @@ class Solver(object):
         """Zeros the gradient buffers."""
         self.g_optimizer.zero_grad()
         self.d_optimizer.zero_grad()
+
+    def sample(self):
+        step = 29999
+        g12_path = os.path.join(self.model_path, 'g12-%d.pkl' %(step+1))
+        g21_path = os.path.join(self.model_path, 'g21-%d.pkl' %(step+1))
+        d1_path = os.path.join(self.model_path, 'd1-%d.pkl' %(step+1))
+        d2_path = os.path.join(self.model_path, 'd2-%d.pkl' %(step+1))
+        self.g12.load_state_dict(torch.load(g12_path))
+        self.g21.load_state_dict(torch.load(g21_path))
+
+        svhn_iter = iter(self.svhn_loader)
+        mnist_iter = iter(self.mnist_loader)
+        iter_per_epoch = min(len(svhn_iter), len(mnist_iter))
+        
+        # fixed mnist and svhn for sampling
+        fixed_svhn = self.to_var(svhn_iter.next()[0])
+        fixed_mnist = self.to_var(mnist_iter.next()[0])
+
+        
+
+        fake_svhn = self.g12(fixed_mnist)
+        fake_mnist = self.g21(fixed_svhn)
+
+        
+        
+        mnist, fake_mnist = self.to_data(fixed_mnist), self.to_data(fake_mnist)
+        svhn , fake_svhn = self.to_data(fixed_svhn), self.to_data(fake_svhn)
+
+        print((svhn.shape),fake_svhn.shape)
+        
+        merged = self.merge_images(mnist, fake_svhn)
+
+        print(merged.shape)
+        path = os.path.join(self.sample_path, 'abc-m-s-%d.png' %(step+1))
+        scipy.misc.imsave(path, merged)
+        print ('saved %s' %path)
+
+
+        
+        merged = self.merge_images(svhn, fake_mnist)
+        path = os.path.join(self.sample_path, 'abc-s-m-%d.png' %(step+1))
+        scipy.misc.imsave(path, merged)
+        print ('saved %s' %path)
+
+
 
     def train(self):
         svhn_iter = iter(self.svhn_loader)

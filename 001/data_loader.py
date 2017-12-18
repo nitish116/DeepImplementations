@@ -15,11 +15,11 @@ def get_loader(config):
 
     svhn_loader = torch.utils.data.DataLoader(dataset=svhn,
                                               batch_size=config.batch_size,
-                                              shuffle=True,
+                                              shuffle=False,
                                               num_workers=config.num_workers)
 
     mnist_loader = torch.utils.data.DataLoader(dataset=mnist,
                                                batch_size=config.batch_size,
-                                               shuffle=True,
+                                               shuffle=False,
                                                num_workers=config.num_workers)
     return svhn_loader, mnist_loader
