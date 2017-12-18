@@ -1,1 +1,9 @@
 *pyc
+
+
+001/mnist
+001/models
+001/samples/
+001/svhn
+
+*/__pycache__
